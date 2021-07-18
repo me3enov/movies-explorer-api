@@ -1,6 +1,6 @@
 # movies-explorer-api
 Публичный IPv4:
-130.193.48.121
+178.154.247.72
 
 Доменное имя:
 https://movies.me3enov.nomoredomains.rocks
