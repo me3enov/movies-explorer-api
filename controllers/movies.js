@@ -3,9 +3,17 @@ const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const ForbiddenError = require('../errors/ForbiddenError');
 
+const {
+  validationErrorName,
+  castErrorName,
+  errorMsgIncorrectMovieData,
+  errorMsgItemNotFound,
+  errorMsgAccessDenied,
+} = require('../utils/constants');
+
 module.exports.getMovies = (req, res, next) => {
   Movie.find({ owner: req.user._id })
-    .then((movies) => res.status(200).send(movies))
+    .then((movies) => res.send(movies))
     .catch(next);
 };
 
@@ -39,13 +47,11 @@ module.exports.createMovie = (req, res, next) => {
     movieId,
   })
     .then((movie) => {
-      res
-        .status(200)
-        .send(movie);
+      res.send(movie);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError({ message: `Incorrect movie data: ${err.message}` }));
+      if (err.name === validationErrorName) {
+        next(new BadRequestError({ message: `${errorMsgIncorrectMovieData} ${err.message}` }));
       } else {
         next(err);
       }
@@ -53,31 +59,31 @@ module.exports.createMovie = (req, res, next) => {
 };
 
 module.exports.deleteMovie = (req, res, next) => {
-  const id = req.params._id;
   const owner = req.user._id;
+  const { movieId } = req.params;
 
-  Movie.findMovieAndOwner(id)
-    .orFail(new NotFoundError({ message: 'Movie not found!' }))
+  Movie.findMovieAndOwner(movieId)
+    .orFail(new NotFoundError({ message: errorMsgItemNotFound }))
     .then((movie) => {
       if (movie.owner.toString() === owner) {
-        return Movie.findByIdAndRemove(id)
-          .orFail(new NotFoundError({ message: 'Movie not found!' }))
+        return Movie.findByIdAndRemove(movieId)
+          .orFail(new NotFoundError({ message: errorMsgItemNotFound }))
           .then((data) => {
-            res.status(200).send({ data });
+            res.send({ data });
           })
           .catch((err) => {
-            if (err.name === 'CastError') {
-              next(new BadRequestError({ message: 'Movie not found!' }));
+            if (err.name === castErrorName) {
+              next(new BadRequestError({ message: errorMsgItemNotFound }));
             } else {
               next(err);
             }
           });
       }
-      return next(new ForbiddenError({ message: 'Access is denied!' }));
+      return next(new ForbiddenError({ message: errorMsgAccessDenied }));
     })
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError({ message: 'Movie not found!' }));
+      if (err.name === castErrorName) {
+        next(new BadRequestError({ message: errorMsgItemNotFound }));
       } else {
         next(err);
       }

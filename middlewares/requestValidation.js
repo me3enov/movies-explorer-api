@@ -1,10 +1,13 @@
 const { celebrate, Joi, CelebrateError } = require('celebrate');
 const validator = require('validator');
-const { defaultUser } = require('../utils/constants');
+
+const {
+  errorMsgInvalidURL,
+} = require('../utils/constants');
 
 const urlValidation = (value) => {
   if (!validator.isURL(value)) {
-    throw new CelebrateError('Invalid URL');
+    throw new CelebrateError(errorMsgInvalidURL);
   }
   return value;
 };
@@ -35,16 +38,14 @@ const validateUser = celebrate({
   body: {
     email: Joi.string().required().email(),
     password: Joi.string().required().min(3),
-    name: Joi.string().min(2).max(30)
-      .default(defaultUser.name),
+    name: Joi.string().min(2).max(30),
   },
 });
 
 const validateUserUpdate = celebrate({
   body: Joi.object().keys({
     email: Joi.string().required().email(),
-    name: Joi.string().required().min(2).max(30)
-      .default(defaultUser.name),
+    name: Joi.string().required().min(2).max(30),
   }),
 });
 

@@ -2,6 +2,11 @@ const mongoose = require('mongoose');
 const validator = require('validator');
 const NotFoundError = require('../errors/NotFoundError');
 
+const {
+  errorMsgInvalidURL,
+  errorMsgItemNotFound,
+} = require('../utils/constants');
+
 const movieSchema = new mongoose.Schema({
   country: {
     type: String,
@@ -34,7 +39,7 @@ const movieSchema = new mongoose.Schema({
             require_protocol: true,
           });
       },
-      message: 'Invalid URL',
+      message: errorMsgInvalidURL,
     },
   },
   trailer: {
@@ -48,7 +53,7 @@ const movieSchema = new mongoose.Schema({
             require_protocol: true,
           });
       },
-      message: 'Invalid URL',
+      message: errorMsgInvalidURL,
     },
   },
   thumbnail: {
@@ -62,7 +67,7 @@ const movieSchema = new mongoose.Schema({
             require_protocol: true,
           });
       },
-      message: 'Invalid URL',
+      message: errorMsgInvalidURL,
     },
   },
   owner: {
@@ -98,7 +103,7 @@ movieSchema.statics.findMovieAndOwner = function getMovie(id) {
   return this.findById(id).select('+owner')
     .then((data) => {
       if (!data) {
-        throw new NotFoundError({ message: 'Movie not found!' });
+        throw new NotFoundError({ message: errorMsgItemNotFound });
       }
       return data;
     });

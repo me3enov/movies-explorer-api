@@ -5,17 +5,27 @@ const BadRequestError = require('../errors/BadRequestError');
 const NotFoundError = require('../errors/NotFoundError');
 const ConflictError = require('../errors/ConflictError');
 
+const {
+  errorMsgUserNotFound,
+  castErrorName,
+  mongoErrorName,
+  validationErrorName,
+  errorMsgWrongId,
+  errorMsgValidation,
+  errorMsgDuplicate,
+} = require('../utils/constants');
+
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 module.exports.getUser = (req, res, next) => {
-  const id = req.params._id;
+  const id = req.user._id;
 
   User.findById(id)
-    .orFail(new NotFoundError({ message: 'User not found!' }))
-    .then((user) => res.status(200).send(user))
+    .orFail(new NotFoundError({ message: errorMsgUserNotFound }))
+    .then((user) => res.send(user))
     .catch((err) => {
-      if (err.name === 'CastError') {
-        next(new BadRequestError({ message: 'Wrong ID!' }));
+      if (err.name === castErrorName) {
+        next(new BadRequestError({ message: errorMsgWrongId }));
       } else {
         next(err);
       }
@@ -36,13 +46,13 @@ module.exports.createUser = (req, res, next) => {
       name,
     }))
     .catch((err) => {
-      if (err.name === 'MongoError' || err.code === 11000) {
-        throw new ConflictError({ message: 'Duplicate key error index' });
+      if (err.name === mongoErrorName || err.code === 11000) {
+        throw new ConflictError({ message: errorMsgDuplicate });
       } else next(err);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError' || err.name === 'CastError') {
-        throw new BadRequestError({ message: 'Validation Error!' });
+      if (err.name === validationErrorName || err.name === castErrorName) {
+        throw new BadRequestError({ message: errorMsgValidation });
       } else {
         next(err);
       }
@@ -68,11 +78,11 @@ module.exports.updateUser = (req, res, next) => {
     },
   )
     .then((user) => {
-      res.status(200).send(user);
+      res.send(user);
     })
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError({ message: 'Validation Error!' }));
+      if (err.name === validationErrorName) {
+        next(new BadRequestError({ message: errorMsgValidation }));
       } else {
         next(err);
       }
