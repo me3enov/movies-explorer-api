@@ -67,7 +67,6 @@ module.exports.deleteMovie = (req, res, next) => {
     .then((movie) => {
       if (movie.owner.toString() === owner) {
         return Movie.findByIdAndRemove(movieId)
-          .orFail(new NotFoundError({ message: errorMsgItemNotFound }))
           .then((data) => {
             res.send({ data });
           })
